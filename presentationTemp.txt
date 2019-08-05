@@ -1,0 +1,33 @@
+presentation
+
+
+Lets talk about parallelization in general, in computers.
+How does it work? 
+  - CPU Cores?
+  - Processes?
+  - Threads?
+
+Main use cases with powershell: 
+	Editing / computing from lots of files
+	Copying lots of files
+	doing things on many computers
+	Doing stuff with lots of IO / timeouts (hitting a webservice, pinging many computers or endpoints, etc)
+
+Python is single threaded only. Any appearance of multithreading is just that, appearance. Like threads on a single core machine.
+
+ForEach -Parallel (lol workflows only, gg). No demo.
+
+Invoke-Command
+Start-Job
+Split-Pipeline
+  - Find-Module SplitPipeline | Install-Module -Force
+RSJob
+  - Find-Module PoshRSJob | Install-Module -Force
+ThreadJob
+  - Find-Module ThreadJob | Install-Module -Force
+CookieMonster - Invoke-Parallel
+  - Find-Module Invoke-Parallel | Install-Module -Force
+Start-Parallel
+
+
+Useful modules people have built with the above:
