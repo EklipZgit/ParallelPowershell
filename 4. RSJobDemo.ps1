@@ -34,8 +34,8 @@ function DemoFilesWithRSJobs {
             }
         }
     }
-    $null = $jobs | Wait-RSJob
-    $jobs | Receive-RSJob
+    $null = $jobs | Wait-RSJob | Receive-RSJob
+    $jobs | Remove-RSJob
     $usedTime = ((Get-Date) - $start).TotalSeconds
     return $usedTime
 }
@@ -52,12 +52,15 @@ Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
 <# 
 Pros: 
     Supports piping and $_ syntax. (Didn't use here since batching was used still)
+    Supports $using:variable syntax
     Much faster startup than Start-Job due to using Runspaces (+threads) rather than Processes.
 Cons:
-    Jobs are not batched however unlike Split-Pipeline, so performance will decrease with 
+    Have to Wait-RSJob before Receive-RSJob. Why did we go a step backwards in technology from Start-Job?
+    Jobs do not batch items automatically, so performance will decrease with 
         large numbers of small items similar to Start-Job. 
     Personally I have had issues with loading modules in RSJob threads in parallel, 
-        sometimes the module load freaks out. I wrap them in try-catches and retry.
+        sometimes the module load freaks out. I wrap them in try-catches and retry a few times and it is fairly reliable after that. Still annoying.
+    No batching support.
 #>
 
 
@@ -94,13 +97,14 @@ function DemoTNCWithRSJobs {
             {
                 $fullIp = "192.168.0.$ip"
                 $result = Test-NetConnection -ComputerName $fullIp -InformationLevel Quiet -WarningAction SilentlyContinue
-                Write-Output [PSCustomObject]@{IP = $fullIp; Result = $result}
+                Write-Output ([PSCustomObject]@{IP = $fullIp; Result = $result})
             }
         }
     }
     
-    $null = $jobs | Wait-RSJob
-    $results = $jobs | Receive-RSJob
+    $results = $jobs | Wait-RSJob | Receive-RSJob
+    $jobs | Remove-RSJob
+    
     $usedTime = ((Get-Date) - $start).TotalSeconds
     return $usedTime
 }
@@ -117,7 +121,3 @@ $time = DemoTNCWithRSJobs -NumJobs $numJobs -IPs $ips
 Write-Verbose "RSJob TNC Used $time seconds with $numJobs jobs!" -Verbose
 
 
-
-
-
-# Can be used with Invoke-Command with the -AsJob flag!

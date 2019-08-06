@@ -52,12 +52,15 @@ Write-Verbose "StartJob Used $time seconds with $numJobs jobs!" -Verbose
 <# 
 Pros: 
     Baked into powershell. $using variable is nice.
-    Very reliable. I have not run into any issues with this command behaving strangely.
+    Very reliable. I have not run into any issues with this command behaving strangely with commands inside of it.
 
 Cons:
-    Each job you start is a new powershell process, which is relatively expensive to create. 
+    Each job you start is a WHOLE NEW powershell process, which is much more expensive to create than reading, parsing, and writing a file. 
+        As such, we wont even CONSIDER demoing creating a new job per file. That would take a ridiculous amount of time.
+        For this reason for a task like this we need to write a bunch of custom logic to 'batch' files together into jobs. Annoying...
     Inconsistent timing, sometimes jobs start up quickly, sometimes they take forever to start.
     Must reload any modules used in your scriptblock in each job that you start.
+    No batching support.
 
 #>
 
@@ -91,7 +94,7 @@ function DemoTNCWithJobs {
             {
                 $fullIp = "192.168.0.$ip"
                 $result = Test-NetConnection -ComputerName $fullIp -InformationLevel Quiet -WarningAction SilentlyContinue
-                Write-Output [PSCustomObject]@{IP = $fullIp; Result = $result}
+                Write-Output ([PSCustomObject]@{IP = $fullIp; Result = $result})
             }
         }
     }

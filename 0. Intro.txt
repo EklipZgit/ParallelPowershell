@@ -1,0 +1,58 @@
+What is parallelization?
+What is multithreading?
+What is multiprocessing?
+Are they the same?
+
+
+
+
+
+
+
+How does it work? 
+  - CPU Cores?
+    - Hyperthreading? 
+  - Processes?
+    - Cost
+  - Threads?
+    - Cost
+
+
+
+
+
+
+
+
+
+Use cases?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Our example use cases:
+Modifying lots of files.
+Talking to lots of machines.
+Doing lots of IO (or network calls).
+DOSing someone!
+DOSing your own computer!
+
+

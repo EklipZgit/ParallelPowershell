@@ -1,58 +1,6 @@
-What is parallelization?
+# Create 1000 large files
 
-
-
-
-
-
-
-How does it work? 
-  - CPU Cores?
-    - Hyperthreading? 
-  - Processes?
-    - Cost
-  - Threads?
-
-
-
-
-
-
-
-
-
-
-Use cases?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Our example use cases:
-Modifying lots of files.
-Talking to lots of machines.
-Doing lots of IO (or network calls).
-
-
-
-
-
-
+$null = mkdir .\testFiles -Force
 $bigString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum luctus, elit a consequat vestibulum, turpis turpis feugiat odio, lobortis viverra quam velit ac ex. Nulla facilisi. Integer egestas molestie urna ac euismod. Suspendisse at dapibus sapien, eget eleifend ligula. Vivamus consequat laoreet nisi eu auctor. Suspendisse cursus leo sed sapien pellentesque, ac varius ligula posuere. Nunc non turpis vitae lacus tempor dictum. Mauris suscipit pulvinar interdum. Fusce varius id augue ut tristique. Morbi nisi erat, blandit non bibendum eget, vulputate pellentesque augue. Interdum et malesuada fames ac ante ipsum primis in faucibus. Integer tempus tempor gravida. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris convallis turpis in ex sagittis efficitur. Mauris accumsan tellus risus. Aliquam volutpat auctor metus vel bibendum.
 
 Sed bibendum, justo non egestas semper, dui dolor porttitor nibh, a pulvinar purus lectus ut justo. Phasellus mattis est sed leo suscipit, eu pretium dui sollicitudin. Duis non iaculis eros. Vestibulum ac odio nec nulla faucibus ultrices. Donec in lectus in nisl vestibulum tempus. Integer nulla erat, commodo sit amet commodo et, pulvinar sed mi. Quisque id ultricies sem. Vivamus id posuere nisi, nec iaculis diam. Duis aliquet lacus non erat posuere, nec vestibulum elit commodo. Pellentesque nec tellus quis odio pellentesque tempor eu id ex. In hac habitasse platea dictumst. Sed ut eleifend ipsum. Etiam tincidunt, dui lobortis gravida dapibus, justo lectus vestibulum enim, eget euismod mauris erat non urna. Curabitur sed congue risus. Praesent suscipit pretium nulla, eu elementum ex suscipit id. Morbi sit amet tincidunt metus, porta sodales erat.
@@ -66,6 +14,6 @@ Etiam bibendum aliquet elit eget congue. Curabitur et euismod ligula, dignissim 
 $bigString *= 20
 
 foreach ($i in 0..1000) 
-{ $bigString | 
-  set-content -path ".\testFiles\$i.txt"
+{ 
+	$bigString | set-content -path ".\testFiles\$i.txt"
 }
