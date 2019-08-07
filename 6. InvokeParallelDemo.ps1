@@ -5,7 +5,6 @@
 # Not available on the PSGallery :(
 . $PSScriptRoot\helpers\Invoke-Parallel.ps1
 
-$numFiles = 1000
 function DemoWithInvokeParallelUnbatched {
     Param(
         $ThreadCount
@@ -46,12 +45,14 @@ function DemoWithInvokeParallelBatched {
     Param(
         $BatchCount
     )
-    $numPerJob = $numFiles / $BatchCount
-
     $testPath = PrepFiles $PSScriptRoot 'InvokeParallelBatched'
     
+    # Again, if we go through the effort of manually batching, we get much better performance. A frustrating thing to need to do...
+    $allFiles = Get-ChildItem -Path $testPath
+    $numFiles = $allFiles.Count
+    $numPerJob = $numFiles / $BatchCount
+
     $start = Get-Date
-    $allFiles = Get-ChildItem -Path $testPath    
     $batches = foreach ($i in 0..($BatchCount - 1))
     {
         [PSCustomObject]@{ 'files' = ($allFiles | Select-Object -skip ($i * $numPerJob) -first $numPerJob) }
@@ -86,17 +87,23 @@ Write-Verbose "InvokeParallel BATCHED files Used $time seconds with $BatchCount 
 Pros: 
     Piping syntax.
     Uses runspaces (and threads), pretty fast.
+    No managing of jobs yourself, so good for parallel-loop type tasks.
 
 Cons:
     No $_ syntax
     No using variables.
     Polls the entire list of open tasks every xxx milliseconds, so the more threads you have the more time it wastes checking up on tasks. 
         (Does not scale well to lots of long running low CPU workloads)
+    One or more errors occurred randomly? No idea what that is about, doesn't give any more information when it happens.
+    Same module load inconsistency issue as PoshRsJob:
+        Get-RunspaceData : The 'Test-NetConnection' command was found in the module 'NetTCPIP', but the module could not be loaded. For more information, run 
+            'Import-Module NetTCPIP'.
+        (This may be a problem in ThreadJob and SplitPipeline as well for all I know, it is uncommon and difficult to reproduce consistently)
 #>
 
 
 
-# What about IO? Lets scan our network for ICMP responses! This would take many, many minutes in a normal foreach loop.
+# Lets try our Test-NetConnection ICMP pings with Invoke-Parallel!
 
 $ips = 0..100
 

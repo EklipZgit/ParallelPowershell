@@ -1,4 +1,4 @@
-# Create 1000 large files
+# Create 1000 large files. This is about 150 MB of text generated total.
 
 $null = mkdir $PSScriptRoot\testFiles -Force
 $bigString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum luctus, elit a consequat vestibulum, turpis turpis feugiat odio, lobortis viverra quam velit ac ex. Nulla facilisi. Integer egestas molestie urna ac euismod. Suspendisse at dapibus sapien, eget eleifend ligula. Vivamus consequat laoreet nisi eu auctor. Suspendisse cursus leo sed sapien pellentesque, ac varius ligula posuere. Nunc non turpis vitae lacus tempor dictum. Mauris suscipit pulvinar interdum. Fusce varius id augue ut tristique. Morbi nisi erat, blandit non bibendum eget, vulputate pellentesque augue. Interdum et malesuada fames ac ante ipsum primis in faucibus. Integer tempus tempor gravida. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris convallis turpis in ex sagittis efficitur. Mauris accumsan tellus risus. Aliquam volutpat auctor metus vel bibendum.

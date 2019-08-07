@@ -2,13 +2,12 @@
 
 . $PSScriptRoot\helpers\PrepFiles.ps1
 
-$numFiles = 1000
 if (-not (Get-Module 'Start-Parallel' -ListAvailable))
 {
     Install-Module 'Start-Parallel' -Force
 }
 
-# We'll try unbatched since it supports piping, and batched!
+# We'll try unbatched since it supports piping and thread throttling!
 function DemoWithStartParallelUnbatched {
     Param(
         $ThreadCount
@@ -50,18 +49,21 @@ function DemoWithStartParallelBatched {
     Param(
         $BatchCount
     )
-    $numPerJob = $numFiles / $BatchCount
-
     $testPath = PrepFiles $PSScriptRoot 'StartParallelBatched'
     
+    # Again, if we go through the effort of manually batching, we get much better performance. A frustrating thing to need to do...
+    # At least with its input syntax batching looks a little bit cleaner, even though the parameter mapping is magic...
+    $allFiles = Get-ChildItem -Path $testPath
+    $numFiles = $allFiles.Count
+    $numPerJob = $numFiles / $BatchCount
+
     $start = Get-Date
-    $allFiles = Get-ChildItem -Path $testPath    
     # Kind of confusing but cool parameter syntax...
     $batches = foreach ($i in 0..($BatchCount - 1))
     {
         [PSCustomObject]@{ 'files' = ($allFiles | Select-Object -skip ($i * $numPerJob) -first $numPerJob) }
     }
-    
+    # Each of these custom objects properties get splatted to the parameter names in your scriptblock. Unconventional, but pretty cool.
     $batches | Start-Parallel -Scriptblock {
         PARAM ($files) 
         foreach ($file in $files)
@@ -95,6 +97,7 @@ Pros:
     Piping syntax. (But creates a thread per object, so you have to batch or accept performance loss).
     Uses runspaces (and threads), pretty fast.
     No auto-batching into threads, but uses threads pretty efficiently.
+    No managing of jobs yourself, so good for parallel-loop type tasks.
 
 Cons:
     No $_ syntax
@@ -108,7 +111,7 @@ Cons:
 
 
 
-# What about IO? Lets scan our network for ICMP responses! This would take many, many minutes in a normal foreach loop.
+# Lets try our Test-NetConnection ICMP pings with Start-Parallel!
 
 $ips = 0..100
 
@@ -147,6 +150,7 @@ $ThreadCount = 100
 $time = DemoTNCWithStartParallel -ThreadCount $ThreadCount -IPs $ips
 Write-Verbose "StartParallel TNC Used $time seconds with $ThreadCount thread count!" -Verbose
 
+# Note that while almost all of the other solutions were still faster for 100 Test-NetConnections with 100 threads, this one is significantly slower than 50 threads...
 
-# In the end, the syntax is kind of cool for parameterized stuff, but the module does not perform well.
+# In the end, the syntax is kind of cool for parameterized stuff, but the module does not perform well. :(
 

@@ -2,9 +2,6 @@
 
 . $PSScriptRoot\helpers\PrepFiles.ps1
 
-
-$numFiles = 1000
-
 if (-not (Get-Module 'PoshRSJob' -ListAvailable))
 {
     Install-Module 'PoshRSJob' -Force
@@ -14,11 +11,13 @@ function DemoFilesWithRSJobs {
     Param(
         $NumJobs
     )
-    $numPerJob = $numFiles / $numJobs
 
     $testPath = PrepFiles $PSScriptRoot 'RSJob'
 
+    # Again, note the boilerplate batching code required for this to run fast, rather than spinning up a whole runspace per file.
     $allFiles = Get-ChildItem -Path $testPath
+    $numFiles = $allFiles.Count
+    $numPerJob = $numFiles / $numJobs
     
     $start = Get-Date
     $jobs = foreach ($i in 0..($NumJobs - 1))
@@ -31,7 +30,6 @@ function DemoFilesWithRSJobs {
                 $content = $content -replace "dolor", "REPLACED-1!"
                 $content = $content -replace "elit", "REPLACED-2!"
                 $content | Set-Content -Path $file.FullName -Encoding UTF8
-                # Write-Verbose "$($file.FullName) modified!" -Verbose
             }
         }
     }
@@ -67,9 +65,12 @@ Cons:
     Have to Wait-RSJob before Receive-RSJob. Why did we go a step backwards in technology from Start-Job?
     Jobs do not batch items automatically, so performance will decrease with 
         large numbers of small items similar to Start-Job. 
-    Personally I have had issues with loading modules in RSJob threads in parallel, 
-        sometimes the module load freaks out. I wrap them in try-catches and retry a few times and it is fairly reliable after that. Still annoying.
-    No batching support.
+    Personally I have had issues with loading modules in RSJob threads in parallel, sometimes the module load freaks out. 
+        I wrap them in try-catches and retry a few times and it is fairly reliable after that. Quite annoying.
+    No batching support, so lots of boilerplate code for managing your own batches of objects.
+    RSJob doesn't seem to be able to use maximal CPU usage unlike Start-Job.
+        Even if you use 8+ threads on a 4 core machine, you'll find it struggles to use more than 75% of the CPU on CPU-Bound workloads
+        unless you create SO MANY rsjobs that you're wasting a ton of CPU context-switching between threads.
 #>
 
 
@@ -80,7 +81,7 @@ Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
 
 
 
-# What about IO? Lets scan our network for ICMP responses! This would take many, many minutes in a normal foreach loop.
+# Lets try our Test-NetConnection ICMP pings with RSJobs!
 
 $ips = 0..100
 
@@ -104,7 +105,8 @@ function DemoTNCWithRSJobs {
                 $result = Test-NetConnection -ComputerName $fullIp -InformationLevel Quiet -WarningAction SilentlyContinue
                 Write-Output ([PSCustomObject]@{IP = $fullIp; Result = $result})
             }
-        }
+        } -Throttle 100
+        # -Throttle doesn't actually apply unless you are piping to Start-RSJob...
     }
     
     $results = $jobs | Wait-RSJob | Receive-RSJob
@@ -125,4 +127,5 @@ $numJobs = 100
 $time = DemoTNCWithRSJobs -NumJobs $numJobs -IPs $ips
 Write-Verbose "RSJob TNC Used $time seconds with $numJobs jobs!" -Verbose
 
-
+Get-RSJob | Remove-RSJob -ErrorAction SilentlyContinue
+# 

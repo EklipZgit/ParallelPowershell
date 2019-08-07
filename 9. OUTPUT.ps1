@@ -246,3 +246,6 @@ cls
 1..100 | Split-Pipeline {process{ Start-Sleep -Seconds 1; $_} }
 # Does not guarantee that you get the numbers back out in the same order they went in. The -Order flag will fix that at the expense of live output:
 1..100 | Split-Pipeline {process{ Start-Sleep -Seconds 1; $_} } -Order
+
+# For most of the other techniques, output order is not really a priority since you don't think about them in terms of a loop.
+# However for split-pipeline, because it looks and feels like a loop, it is much easier to make the mistake of assuming your output will come in the same order that the input went in, so I felt it was important to call out the -Order parameter explicitly on this one.

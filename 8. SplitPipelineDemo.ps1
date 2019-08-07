@@ -18,6 +18,7 @@ function DemoWithSplitPipeline {
     $allFiles = Get-ChildItem -Path $testPath
     
     $start = Get-Date
+    # Fast AND automatic batching? No way! Way less boilerplate code other than the extra process {} block.
     $allFiles | Split-Pipeline -Count $ThreadCount -Script { process {
         $content = Get-Content -Path $_.FullName -Raw
         $content = $content -replace "dolor", "REPLACED-1!"
@@ -30,7 +31,7 @@ function DemoWithSplitPipeline {
 }
 
 
-$ThreadCount = 1
+$ThreadCount = 2
 $time = DemoWithSplitPipeline -ThreadCount $ThreadCount
 Write-Verbose "SplitPipeline files Used $time seconds with $ThreadCount Thread count!" -Verbose
 
@@ -42,6 +43,13 @@ $ThreadCount = 8
 $time = DemoWithSplitPipeline -ThreadCount $ThreadCount
 Write-Verbose "SplitPipeline files Used $time seconds with $ThreadCount Thread count!" -Verbose
 
+$ThreadCount = 16
+$time = DemoWithSplitPipeline -ThreadCount $ThreadCount
+Write-Verbose "SplitPipeline files Used $time seconds with $ThreadCount Thread count!" -Verbose
+
+$ThreadCount = 24
+$time = DemoWithSplitPipeline -ThreadCount $ThreadCount
+Write-Verbose "SplitPipeline files Used $time seconds with $ThreadCount Thread count!" -Verbose
 <# 
 Pros: 
     Allows begin and end blocks (so if you have some setup that must 
@@ -49,6 +57,7 @@ Pros:
     Very fast compared to Start-Job.
     Very pleasant to use. $_ syntax is very nice. Notice how much less code this took to set up properly than start-job did.
     No need to worry about batching to make optimal use of your CPUs / threads (like we had to for RSJob / Start-Job).
+    No managing of jobs yourself, so good for parallel-loop type tasks.
 
 Cons:
     Not the most performant when hyper-tuning. I was able to hyper-tune better performance from RSJob 
@@ -57,11 +66,12 @@ Cons:
         this is by far the easiest to get great performance from.
         No tweaking batch size madness, it just works.
     Requires the process block in -ScriptBlock { process { } } syntax. 
+    Output streams could be handled better, more on that in 9.)
 #>
 
 
 
-# What about IO? Lets scan our network for ICMP responses! This would take many, many minutes in a normal foreach loop.
+# Lets try our Test-NetConnection ICMP pings with Split-Pipeline!
 
 $ips = 0..100
 
@@ -107,8 +117,8 @@ Write-Verbose "SplitPipeline TNC Used $time seconds with $ThreadCount Thread cou
 
 # Very easy to use. Opens up a realm of possibilities both in scripts and as an admin for doing things quickly that would normally be long loops with just your standard loop-like code.
 
-$allServers = Get-Content "YourSourceForListOfComputers"
+$allServers = Get-Content "YourSourceForAnArrayOfComputers"
 
-$pingResults = $allServers | Split-Pipeline { process { ping $_ -n 1 } }
+$pingResults = $allServers | Split-Pipeline { process { [PSCustomObject]@{ComputerName = $_; Result = Test-NetConnection -ComputerName $_ -InformationLevel Quiet -WarningAction SilentlyContinue } } }
 
 $pingResults

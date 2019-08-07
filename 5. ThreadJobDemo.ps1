@@ -3,8 +3,6 @@
 . $PSScriptRoot\helpers\PrepFiles.ps1
 
 
-$numFiles = 1000
-
 if (-not (Get-Module 'ThreadJob' -ListAvailable))
 {
     Install-Module 'ThreadJob' -Force
@@ -14,18 +12,19 @@ function DemoFilesWithThreadJobs {
     Param(
         $NumJobs
     )
-    $numPerJob = $numFiles / $numJobs
-
-
     $testPath = PrepFiles $PSScriptRoot 'ThreadJob'
 
+    # Again, note the boilerplate batching code required for this to run fast, rather than spinning up a whole runspace per file.
     $allFiles = Get-ChildItem -Path $testPath
+    $numFiles = $allFiles.Count
+    $numPerJob = $numFiles / $numJobs
     
     $start = Get-Date
     $jobs = foreach ($i in 0..($NumJobs - 1))
     {
         $files = $allFiles | Select-Object -skip ($i * $numPerJob) -first $numPerJob
         $files | Start-ThreadJob -ScriptBlock {
+            # Note the $Input variable for accessing THE WHOLE ARRAY that was piped. 
             foreach ($file in $Input)
             {
                 $content = Get-Content -Path $file.FullName -Raw
@@ -45,7 +44,7 @@ $numJobs = 2
 $time = DemoFilesWithThreadJobs -NumJobs $numJobs
 Write-Verbose "ThreadJob files Used $time seconds with $numJobs jobs!" -Verbose
 
-$numJobs = 4
+$numJobs = 5
 $time = DemoFilesWithThreadJobs -NumJobs $numJobs
 Write-Verbose "ThreadJob files Used $time seconds with $numJobs jobs!" -Verbose
 
@@ -69,7 +68,7 @@ Cons:
     What is this $Input syntax? Was making that variable $_ too hard????
     Despite being baked into powershell, no $using:variable syntax. 
         Not a serious complaint, as piping is more explicit, but makes it feel less like lambdas in other programming languages.
-    No batching support.
+    No batching support, so lots of boilerplate code for managing your own batches of objects, although one thread per object is actually not terribly unperformant compared to Start-Job and RSJobs.
 #>
 
 
@@ -79,8 +78,7 @@ Write-Verbose "ThreadJob files Used $time seconds with $numJobs jobs!" -Verbose
 
 
 
-
-# What about IO? Lets scan our network for ICMP responses! This would take many, many minutes in a normal foreach loop.
+# Lets try our Test-NetConnection ICMP pings with ThreadJobs!
 
 $ips = 0..100
 
@@ -124,3 +122,7 @@ Write-Verbose "ThreadJob TNC Used $time seconds with $numJobs jobs!" -Verbose
 
 
 
+# Pretty similar to RSJobs...
+
+
+Get-Job | Remove-Job -ErrorAction SilentlyContinue

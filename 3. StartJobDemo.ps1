@@ -2,17 +2,19 @@
 
 . $PSScriptRoot\helpers\PrepFiles.ps1
 
-$numFiles = 1000
-
 function DemoFilesWithJobs {
     Param(
         $NumJobs
     )
-    $numPerJob = $numFiles / $numJobs
+
+    # Note the extra boilerplate code here required to batch the objects into threads. 
+    # This will be a repeated theme for the *Job commands, as they dont perform incredibly well at large numbers of jobs.
 
     $testPath = PrepFiles $PSScriptRoot 'StartJob'
 
     $allFiles = Get-ChildItem -Path $testPath
+    $numFiles = $allFiles.Count
+    $numPerJob = $numFiles / $numJobs
     
     $start = Get-Date
     $jobs = foreach ($i in 0..($NumJobs - 1))
@@ -52,18 +54,18 @@ Write-Verbose "StartJob files Used $time seconds with $numJobs jobs!" -Verbose
 Pros: 
     Baked into powershell. $using variable is nice.
     Very reliable. I have not run into any issues with this command behaving strangely with commands inside of it.
-    Supports -Credential parameter to run as another user!
-        !!!WARNING!!! This counts as the first hop in your Kerberos double hop scenario. 
-        This job with new credentials will be unable to hit a fileshare or Kerberose authenticated website.
+    Supports -Credential parameter to run the job as another user!
 
 Cons:
-    Each job you start is a WHOLE NEW powershell process, which is much more expensive to create than reading, parsing, and writing a file. 
+    Each job you start is a WHOLE NEW powershell process, which is much more expensive to create than reading, parsing, and writing a single file. 
         As such, we wont even CONSIDER demoing creating a new job per file. That would take a ridiculous amount of time.
         For this reason for a task like this we need to write a bunch of custom logic to 'batch' files together into jobs. Annoying...
     Inconsistent timing, sometimes jobs start up quickly, sometimes they take forever to start.
     Must reload any modules used in your scriptblock in each job that you start.
-    No batching support.
-
+    No batching support, so lots of boilerplate code for managing your own batches of objects.
+    You cannot control the number of jobs running at a given time. Since they are their own processes,
+        they can potentially all fight for CPU time and slow stuff down a lot if you use more jobs than 
+        CPU cores for a task that is CPU-Bound.
 #>
 
 
@@ -118,5 +120,6 @@ Write-Verbose "StartJob TNC Used $time seconds with $numJobs jobs!" -Verbose
 
 
 
+Get-Job | Remove-Job -ErrorAction SilentlyContinue
 
 # Can be used with Invoke-Command with the -AsJob flag to get jobs back!
