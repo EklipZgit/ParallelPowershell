@@ -1,3 +1,6 @@
+Me:
+Travis Drake, Sr DevOps engineer for loanDepot. C# Dev in a past life.
+
 What we are going to talk about: 
   Embarrassingly parallel scenarios.
   How to use existing tools to save you and your company time.

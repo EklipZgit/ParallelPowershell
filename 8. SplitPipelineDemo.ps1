@@ -18,7 +18,7 @@ function DemoWithSplitPipeline {
     $allFiles = Get-ChildItem -Path $testPath
     
     $start = Get-Date
-    $allFiles | Split-Pipeline -Count $ThreadCount -Script {process {
+    $allFiles | Split-Pipeline -Count $ThreadCount -Script { process {
         $content = Get-Content -Path $_.FullName -Raw
         $content = $content -replace "dolor", "REPLACED-1!"
         $content = $content -replace "elit", "REPLACED-2!"
@@ -105,8 +105,10 @@ Write-Verbose "SplitPipeline TNC Used $time seconds with $ThreadCount Thread cou
 # Wow! It even washes your dishes for you and hand dries them!
 
 
-# Very easy to use. 
+# Very easy to use. Opens up a realm of possibilities both in scripts and as an admin for doing things quickly that would normally be long loops with just your standard loop-like code.
 
-$pingResults = Get-LDServer | Split-Pipeline { process { ping $_.ComputerName -n 1 } }
+$allServers = Get-Content "YourSourceForListOfComputers"
 
+$pingResults = $allServers | Split-Pipeline { process { ping $_ -n 1 } }
 
+$pingResults

@@ -103,7 +103,7 @@ $jobs = 1..2 | Start-ThreadJob -ScriptBlock {
     Write-Error "how about a non-terminating error?"
     throw "Finally, lets cap things off with a nice exception."
 }
-$jobs | receive-job -wait
+$jobs | % { $_ | receive-job -wait }
 
 
 
@@ -227,9 +227,9 @@ cls
 } }
 
 
-
+# Alright, that resolved our missing output issue. So important that you catch terminating errors in split pipeline (or don't have them), if you want clear debugging output.
 # Output is out of order with the other streams :(
-# The errors don't come with the batch that they were processing either.
+# The errors don't come in order with the item that they were processing either.
 
 1..2 | Split-Pipeline -Script { process {
     Write-Host "First, host"
@@ -241,5 +241,8 @@ cls
 
 
 
-# Not even the -Order parameter saves us from this behavior.
-
+# Not even the -Order parameter saves us from this behavior. The -Order parameter enforces that the output from your objects are output in the same order that they went in.
+# For example, 
+1..100 | Split-Pipeline {process{ Start-Sleep -Seconds 1; $_} }
+# Does not guarantee that you get the numbers back out in the same order they went in. The -Order flag will fix that at the expense of live output:
+1..100 | Split-Pipeline {process{ Start-Sleep -Seconds 1; $_} } -Order

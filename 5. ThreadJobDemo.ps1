@@ -32,7 +32,6 @@ function DemoFilesWithThreadJobs {
                 $content = $content -replace "dolor", "REPLACED-1!"
                 $content = $content -replace "elit", "REPLACED-2!"
                 $content | Set-Content -Path $file.FullName -Encoding UTF8
-                # Write-Verbose "$($file.FullName) modified!" -Verbose
             }
         } -ThrottleLimit $NumJobs
     }

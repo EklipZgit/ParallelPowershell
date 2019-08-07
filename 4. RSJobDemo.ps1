@@ -46,7 +46,7 @@ $numJobs = 2
 $time = DemoFilesWithRSJobs -NumJobs $numJobs
 Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
 
-$numJobs = 4
+$numJobs = 5
 $time = DemoFilesWithRSJobs -NumJobs $numJobs
 Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
 

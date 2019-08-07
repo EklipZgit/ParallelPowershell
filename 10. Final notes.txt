@@ -1,1 +1,7 @@
-I wrote Invoke-LDParallel based around RSJobs before I discovered Split-Pipeline. 
+
+All in all, if you are trying to parallelize something very long running, where you want one thread per data point (Scripting out the deployment and setup of a VMWare VM for example), then Start-Job is very robust, has great output, and good features. Its downside is that it costs between 0.3 and 1 second per job that you spin up.
+
+If you are working on lots of smaller data (pinging lots of servers), and your script wont require heavy debugging or can be debugged in a single thread outside of the Split-Pipeline call, I would recommend Split-Pipeline. The performance and free batching are very good, but you do lose the contiguity of your input streams.
+
+If you want to optimize for performance and can do your own batching, ThreadJobs are probably the way to go, and appear to have supplanted PoshRSJob as the go-to threading method in powershell 6+.
+
