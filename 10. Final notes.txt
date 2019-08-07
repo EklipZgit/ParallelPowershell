@@ -1,0 +1,1 @@
+I wrote Invoke-LDParallel based around RSJobs before I discovered Split-Pipeline. 

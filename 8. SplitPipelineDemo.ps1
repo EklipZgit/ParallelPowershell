@@ -1,15 +1,19 @@
 # Split-Pipeline, by nightroman!
 
+# Is there a better way than managing all the jobs these previous modules used??? Perhaps!
+
+. $PSScriptRoot\helpers\PrepFiles.ps1
+
+if (-not (Get-Module 'SplitPipeline' -ListAvailable))
+{
+    Install-Module 'SplitPipeline' -Force
+}
+
 function DemoWithSplitPipeline {
     Param(
         $ThreadCount
     )
-    $folderPath = Resolve-Path $PSScriptRoot\TestFiles
-    
-    $testPath = "$PSScriptRoot\output\SplitPipelineFiles"
-    $null = mkdir $testPath -Force
-    $null = Robocopy.exe /MIR $folderPath $testPath
-    start-sleep -seconds 1
+    $testPath = PrepFiles $PSScriptRoot 'SplitPipeline'
     
     $allFiles = Get-ChildItem -Path $testPath
     
@@ -40,14 +44,19 @@ Write-Verbose "SplitPipeline files Used $time seconds with $ThreadCount Thread c
 
 <# 
 Pros: 
-    Allows begin and end blocks (so if you have some setup that must be run once per process, like importing modules, you can use that)
+    Allows begin and end blocks (so if you have some setup that must 
+        be run once per process, like importing modules, you can use that)
     Very fast compared to Start-Job.
     Very pleasant to use. $_ syntax is very nice. Notice how much less code this took to set up properly than start-job did.
     No need to worry about batching to make optimal use of your CPUs / threads (like we had to for RSJob / Start-Job).
 
 Cons:
-    Not the most performant when hyper-tuning. I was able to hyper-tune better performance from RSJob (and I believe ThreadJob is now more performant than RSJobs?).
-        Out of the box without trying to hyper-tune for specific cases, this is by far the easiest to get great performance from. No tweaking batch size madness, it just works.
+    Not the most performant when hyper-tuning. I was able to hyper-tune better performance from RSJob 
+        (and I believe ThreadJob is now more performant than RSJobs?).
+        Out of the box without trying to hyper-tune for specific cases, 
+        this is by far the easiest to get great performance from.
+        No tweaking batch size madness, it just works.
+    Requires the process block in -ScriptBlock { process { } } syntax. 
 #>
 
 
@@ -94,3 +103,10 @@ Write-Verbose "SplitPipeline TNC Used $time seconds with $ThreadCount Thread cou
 
 # TLDR, this is a great tool that everyone should have. Look how clean that syntax is! Look how fast it performs without any effort! 
 # Wow! It even washes your dishes for you and hand dries them!
+
+
+# Very easy to use. 
+
+$pingResults = Get-LDServer | Split-Pipeline { process { ping $_.ComputerName -n 1 } }
+
+

@@ -9,7 +9,8 @@ $computers.Count
 
 
 $HighCpuProcesses = Invoke-Command -ThrottleLimit 50 -ComputerName $computers { 
-    Get-Process | Sort CPU -descending | Select -first 1 -Property ProcessName,CPU
+    $result = Get-Process | Sort CPU -descending | Select -first 1 -Property ProcessName,CPU
+    Write-Output ([PSCustomObject]@{'ComputerName' = $ENV:ComputerName; 'ProcessName' = $result.ProcessName; 'CPU' = $result.CPU})
 }
 
 $HighCpuProcesses | Format-Table

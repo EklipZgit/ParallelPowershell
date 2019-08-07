@@ -1,8 +1,14 @@
 # RS Jobs are a faster alternative
 
+. $PSScriptRoot\helpers\PrepFiles.ps1
 
 
 $numFiles = 1000
+
+if (-not (Get-Module 'PoshRSJob' -ListAvailable))
+{
+    Install-Module 'PoshRSJob' -Force
+}
 
 function DemoFilesWithRSJobs {
     Param(
@@ -10,12 +16,7 @@ function DemoFilesWithRSJobs {
     )
     $numPerJob = $numFiles / $numJobs
 
-    $folderPath = Resolve-Path $PSScriptRoot\TestFiles
-    
-    $testPath = "$PSScriptRoot\output\StartRSJobFiles"
-    $null = mkdir $testPath -Force
-    $null = Robocopy.exe /MIR $folderPath $testPath
-    start-sleep -seconds 1
+    $testPath = PrepFiles $PSScriptRoot 'RSJob'
 
     $allFiles = Get-ChildItem -Path $testPath
     
@@ -41,11 +42,19 @@ function DemoFilesWithRSJobs {
 }
 
 
-$numJobs = 1
+$numJobs = 2
 $time = DemoFilesWithRSJobs -NumJobs $numJobs
 Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
 
-$numJobs = 5
+$numJobs = 4
+$time = DemoFilesWithRSJobs -NumJobs $numJobs
+Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
+
+$numJobs = 8
+$time = DemoFilesWithRSJobs -NumJobs $numJobs
+Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
+
+$numJobs = 16
 $time = DemoFilesWithRSJobs -NumJobs $numJobs
 Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
 
@@ -63,10 +72,6 @@ Cons:
     No batching support.
 #>
 
-
-$numJobs = 20
-$time = DemoFilesWithRSJobs -NumJobs $numJobs
-Write-Verbose "RSJob files Used $time seconds with $numJobs jobs!" -Verbose
 
 $numJobs = 50
 $time = DemoFilesWithRSJobs -NumJobs $numJobs

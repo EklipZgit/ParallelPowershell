@@ -1,3 +1,6 @@
+# Just for reference in the presentation. 
+# This is actually located at https://github.com/RamblingCookieMonster/Invoke-Parallel, DO NOT USE THIS COPY!
+
 function Invoke-Parallel {
     <#
     .SYNOPSIS

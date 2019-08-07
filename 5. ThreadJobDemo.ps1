@@ -1,8 +1,14 @@
-# RS Jobs are a faster alternative
+# Thread jobs, now with powershell 6.1!
 
+. $PSScriptRoot\helpers\PrepFiles.ps1
 
 
 $numFiles = 1000
+
+if (-not (Get-Module 'ThreadJob' -ListAvailable))
+{
+    Install-Module 'ThreadJob' -Force
+}
 
 function DemoFilesWithThreadJobs {
     Param(
@@ -10,12 +16,8 @@ function DemoFilesWithThreadJobs {
     )
     $numPerJob = $numFiles / $numJobs
 
-    $folderPath = Resolve-Path $PSScriptRoot\TestFiles
-    
-    $testPath = "$PSScriptRoot\output\StartThreadJobFiles"
-    $null = mkdir $testPath -Force
-    $null = Robocopy.exe /MIR $folderPath $testPath
-    start-sleep -seconds 1
+
+    $testPath = PrepFiles $PSScriptRoot 'ThreadJob'
 
     $allFiles = Get-ChildItem -Path $testPath
     
@@ -40,11 +42,19 @@ function DemoFilesWithThreadJobs {
 }
 
 
-$numJobs = 1
+$numJobs = 2
 $time = DemoFilesWithThreadJobs -NumJobs $numJobs
 Write-Verbose "ThreadJob files Used $time seconds with $numJobs jobs!" -Verbose
 
-$numJobs = 5
+$numJobs = 4
+$time = DemoFilesWithThreadJobs -NumJobs $numJobs
+Write-Verbose "ThreadJob files Used $time seconds with $numJobs jobs!" -Verbose
+
+$numJobs = 8
+$time = DemoFilesWithThreadJobs -NumJobs $numJobs
+Write-Verbose "ThreadJob files Used $time seconds with $numJobs jobs!" -Verbose
+
+$numJobs = 16
 $time = DemoFilesWithThreadJobs -NumJobs $numJobs
 Write-Verbose "ThreadJob files Used $time seconds with $numJobs jobs!" -Verbose
 
@@ -63,10 +73,6 @@ Cons:
     No batching support.
 #>
 
-
-$numJobs = 20
-$time = DemoFilesWithThreadJobs -NumJobs $numJobs
-Write-Verbose "ThreadJob files Used $time seconds with $numJobs jobs!" -Verbose
 
 $numJobs = 50
 $time = DemoFilesWithThreadJobs -NumJobs $numJobs

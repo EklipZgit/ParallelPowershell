@@ -1,3 +1,33 @@
+What we are going to talk about: 
+  Embarrassingly parallel scenarios.
+  How to use existing tools to save you and your company time.
+  How to think about parallelization as a tool.
+
+What we aren't going to do:
+  We won't go crazy in depth about how to build your own runspace pools and spin up powershell in other threads yourself.
+    - See https://blogs.technet.microsoft.com/uktechnet/2016/06/20/parallel-processing-with-powershell/ for an example of that.
+
+Covering:
+  ForEach -Parallel (lol workflows only, gg). No demo.
+
+  Invoke-Command
+  Start-Job
+  Split-Pipeline
+    - Find-Module SplitPipeline | Install-Module -Force
+  RSJob
+    - Find-Module PoshRSJob | Install-Module -Force
+  ThreadJob
+    - Find-Module ThreadJob | Install-Module -Force
+  CookieMonster - Invoke-Parallel
+    - Download from github :( https://github.com/RamblingCookieMonster/Invoke-Parallel
+  Start-Parallel
+    - Find-Module Start-Parallel | Install-Module -Force
+
+
+
+
+
+
 What is parallelization?
 What is multithreading?
 What is multiprocessing?
@@ -27,6 +57,15 @@ How does it work?
 
 Use cases?
 
+Embarrassingly parallel
+
+
+
+
+
+For each AD user, download their workday data and output a spreadsheet containing their workday data + AD information.
+
+Spinning up many VMWare VMs in parallel in the same script at the same time, and doing some initialization on each after the spin up completes.
 
 
 
@@ -55,4 +94,20 @@ Doing lots of IO (or network calls).
 DOSing someone!
 DOSing your own computer!
 
+Testing all of the endpoints that we manage and reporting back with the test results.
+Publishing DSC to a bunch of servers at once and logging each DSC run individually.
 
+
+
+Pitfalls!
+Parallelization is not always faster. Lots of small things dont always benefit. 
+  For example, the demos ahead barely beat single threaded performance by only 2x in best case scenarios. 
+  Oftentimes short running operations on lots of little objects / data don't lend themselves to parallelization well.
+
+Writing to the same file multiple times! All state must be contained in a single instance of what you are parallelizing.
+  The moment you need shared state or dependencies, things get trickier.
+  
+Debugging is difficult. No breakpoints within your parallelized scriptblocks in my limited research. 
+  Even the little snippets I wrote up for these demos had some annoying pitfalls.
+
+Output can get gross. Getting your exceptions and errors can be quite annoying.

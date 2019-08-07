@@ -1,6 +1,6 @@
 # Jobs are the other example of parallel powershell that you may have run into before!
 
-
+. $PSScriptRoot\helpers\PrepFiles.ps1
 
 $numFiles = 1000
 
@@ -10,12 +10,7 @@ function DemoFilesWithJobs {
     )
     $numPerJob = $numFiles / $numJobs
 
-    $folderPath = Resolve-Path $PSScriptRoot\TestFiles
-    
-    $testPath = "$PSScriptRoot\output\StartJobFiles"
-    $null = mkdir $testPath -Force
-    $null = Robocopy.exe /MIR $folderPath $testPath
-    start-sleep -seconds 1
+    $testPath = PrepFiles $PSScriptRoot 'StartJob'
 
     $allFiles = Get-ChildItem -Path $testPath
     
@@ -30,7 +25,6 @@ function DemoFilesWithJobs {
                 $content = $content -replace "dolor", "REPLACED-1!"
                 $content = $content -replace "elit", "REPLACED-2!"
                 $content | Set-Content -Path $file.FullName -Encoding UTF8
-                # Write-Verbose "$($file.FullName) modified!" -Verbose
             }
         }
     }
@@ -41,18 +35,26 @@ function DemoFilesWithJobs {
 }
 
 
-$numJobs = 1
+$numJobs = 2
 $time = DemoFilesWithJobs -NumJobs $numJobs
-Write-Verbose "StartJob Used $time seconds with $numJobs jobs!" -Verbose
+Write-Verbose "StartJob files Used $time seconds with $numJobs jobs!" -Verbose
 
 $numJobs = 5
 $time = DemoFilesWithJobs -NumJobs $numJobs
-Write-Verbose "StartJob Used $time seconds with $numJobs jobs!" -Verbose
+Write-Verbose "StartJob files Used $time seconds with $numJobs jobs!" -Verbose
+
+
+$numJobs = 10
+$time = DemoFilesWithJobs -NumJobs $numJobs
+Write-Verbose "StartJob files Used $time seconds with $numJobs jobs!" -Verbose
 
 <# 
 Pros: 
     Baked into powershell. $using variable is nice.
     Very reliable. I have not run into any issues with this command behaving strangely with commands inside of it.
+    Supports -Credential parameter to run as another user!
+        !!!WARNING!!! This counts as the first hop in your Kerberos double hop scenario. 
+        This job with new credentials will be unable to hit a fileshare or Kerberose authenticated website.
 
 Cons:
     Each job you start is a WHOLE NEW powershell process, which is much more expensive to create than reading, parsing, and writing a file. 
@@ -67,7 +69,7 @@ Cons:
 
 $numJobs = 50
 $time = DemoFilesWithJobs -NumJobs $numJobs
-Write-Verbose "StartJob Used $time seconds with $numJobs jobs!" -Verbose
+Write-Verbose "StartJob files Used $time seconds with $numJobs jobs!" -Verbose
 
 
 
@@ -109,8 +111,6 @@ $time = DemoTNCWithJobs -NumJobs $numJobs -IPs $ips
 Write-Verbose "StartJob TNC Used $time seconds with $numJobs jobs!" -Verbose
 
 
-
-
 $numJobs = 100
 $time = DemoTNCWithJobs -NumJobs $numJobs -IPs $ips
 Write-Verbose "StartJob TNC Used $time seconds with $numJobs jobs!" -Verbose
@@ -119,4 +119,4 @@ Write-Verbose "StartJob TNC Used $time seconds with $numJobs jobs!" -Verbose
 
 
 
-# Can be used with Invoke-Command with the -AsJob flag!
+# Can be used with Invoke-Command with the -AsJob flag to get jobs back!
